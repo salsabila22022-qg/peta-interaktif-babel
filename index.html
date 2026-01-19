@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>Peta Interaktif Babel</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link rel="stylesheet" href="css/leaflet.css">
+
+<style>
+html, body, #map {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
+.popup-box {
+  font-family: Arial, sans-serif;
+  font-size: 13px;
+}
+.popup-box h3 {
+  margin: 0 0 6px 0;
+}
+.popup-img {
+  width: 100%;
+  max-width: 280px;
+  border-radius: 8px;
+  margin-top: 8px;
+}
+</style>
+</head>
+
+<body>
+<div id="map"></div>
+
+<script src="js/leaflet.js"></script>
+<script src="data/dtwp_babel_fixdtwp_babel_2.js"></script>
+
+<script>
+// Inisialisasi peta dan basemap
+var map = L.map('map').setView([-2.5, 106.8], 8);
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+// Definisi ikon berdasarkan jenis daya tarik wisata
+function iconJenis(jenis) {
+  return L.icon({
+    iconUrl: 'markers/' + jenis + '.png',
+    iconSize: [36, 36],
+    iconAnchor: [18, 36],
+    popupAnchor: [0, -30]
+  });
+}
+
+// Fungsi normalisasi nama menjadi format nama file
+function slug(nama) {
+  return nama.toLowerCase()
+    .replace(/[^a-z0-9 ]/g, '')
+    .replace(/\s+/g, '_');
+}
+
+// Pembuatan konten popup
+function popupHTML(p) {
+
+  var nama = p.nama.toLowerCase().trim();
+  var foto = '';
+
+  // Penanganan khusus untuk perbedaan format file gambar
+  if (nama.indexOf('bedil') !== -1) {
+    foto = 'images/pantai_batu_bedil.png';
+  }
+  else if (nama.indexOf('jerangkat') !== -1) {
+    foto = 'images/pantai_jerangkat.jpeg';
+  }
+  else if (nama.indexOf('laskar pelangi') !== -1) {
+    foto = 'images/replika_laskar_pelangi.jpg';
+  }
+  else {
+    foto = 'images/' + slug(nama) + '.jpg';
+  }
+
+  var html = '';
+  html += '<div class="popup-box">';
+  html += '<h3>' + p.nama + '</h3>';
+  html += '<b>Jenis:</b> ' + p.jenis + '<br><br>';
+  if (p.deskripsi) {
+    html += p.deskripsi;
+  }
+  html += '<img class="popup-img" src="' + foto +
+          '" onerror="this.style.display=\'none\'">';
+  html += '</div>';
+
+  return html;
+}
+
+// Menampilkan layer titik daya tarik wisata
+L.geoJSON(json_dtwp_babel_fixdtwp_babel_2, {
+  pointToLayer: function(feature, latlng) {
+    return L.marker(latlng, {
+      icon: iconJenis(feature.properties.jenis)
+    });
+  },
+  onEachFeature: function(feature, layer) {
+    layer.bindPopup(popupHTML(feature.properties));
+  }
+}).addTo(map);
+</script>
+
+</body>
+</html>
